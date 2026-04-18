@@ -1,0 +1,305 @@
+OLLAMA LOCAL AI IDE AGENT — MODEL-AGNOSTIC ARCHITECTURE
+VERSION: 3.0
+GOAL: Build a VS Code extension that behaves as a fully autonomous AI coding agent using ANY Ollama models selected dynamically via UI.
+
+========================================================
+1. CORE PRINCIPLE
+========================================================
+
+This system is MODEL-AGNOSTIC + UI-CONTROLLED.
+
+Users MUST be able to:
+- Select reasoning model via dropdown
+- Select coding model via dropdown
+- Switch models at runtime without restart
+
+No hardcoded AI intelligence.
+
+========================================================
+2. USER INTERFACE (NEW)
+========================================================
+
+A VS Code Sidebar Panel must include:
+
+🧠 Reasoning Model Dropdown:
+- deepseek-r1:8b
+- llama3.1:8b
+- qwen2.5:7b-instruct
+- (auto-loaded from Ollama)
+
+💻 Coding Model Dropdown:
+- deepseek-coder-v2:16b
+- qwen2.5-coder:7b
+- codellama:13b
+- (auto-loaded from Ollama)
+
+[ START AGENT ]
+[ STOP AGENT ]
+[ STEP MODE / AUTO MODE TOGGLE ]
+
+RULE:
+UI selection overrides config defaults.
+
+========================================================
+3. CONFIG SYSTEM
+========================================================
+
+models.config.json (fallback defaults only)
+
+{
+  "default_reasoning": "deepseek-r1:8b",
+  "default_coding": "deepseek-coder-v2:16b"
+}
+
+BUT:
+
+UI selection ALWAYS overrides config.
+
+========================================================
+4. OLLAMA INTEGRATION LAYER (NEW CORE MODULE)
+========================================================
+
+A dedicated service handles ALL model communication.
+
+OLLAMA BASE URL:
+http://localhost:11434
+
+API ENDPOINT:
+POST /api/chat
+
+--------------------------------------------------------
+OLLAMA SERVICE FUNCTIONS:
+--------------------------------------------------------
+
+1. listModels()
+→ Fetch installed models from Ollama
+
+2. chat(model, messages)
+→ Send chat request
+
+3. streamChat(model, messages)
+→ Stream response token-by-token
+
+4. healthCheck()
+→ Verify Ollama is running
+
+--------------------------------------------------------
+EXAMPLE REQUEST:
+--------------------------------------------------------
+
+POST http://localhost:11434/api/chat
+
+{
+  "model": "deepseek-r1:8b",
+  "messages": [
+    { "role": "user", "content": "task..." }
+  ],
+  "stream": false
+}
+
+========================================================
+5. SYSTEM ARCHITECTURE (UPDATED)
+========================================================
+
+USER INPUT (Chat UI)
+        ↓
+UI MODEL SELECTOR (Dropdown state)
+        ↓
+MODEL ROUTER
+        ↓
+🧠 REASONING MODEL (selected in UI)
+        ↓
+PLAN OUTPUT
+        ↓
+💻 CODING MODEL (selected in UI)
+        ↓
+TOOL EXECUTOR
+        ↓
+FEEDBACK LOOP → REASONING MODEL
+
+========================================================
+6. AGENT LOOP ENGINE
+========================================================
+
+LOOP (max 5 iterations):
+
+STEP 1:
+Send task → selected reasoning model
+
+STEP 2:
+Receive structured plan
+
+STEP 3:
+Send step → selected coding model
+
+STEP 4:
+Execute tools:
+- file write
+- patch apply
+- terminal execution
+
+STEP 5:
+Return results → reasoning model
+
+STOP CONDITIONS:
+- Task complete
+- No changes needed
+- Max iterations reached
+
+========================================================
+7. TOOL SYSTEM (STRICT JSON CONTRACT)
+========================================================
+
+ALL coding model outputs MUST follow:
+
+{
+  "tool": "write_file",
+  "path": "src/index.ts",
+  "content": "..."
+}
+
+SUPPORTED TOOLS:
+
+- read_file
+- write_file
+- apply_patch
+- run_terminal
+- search_workspace
+
+RULE:
+No free-form actions allowed.
+
+========================================================
+8. REASONING MODEL PROMPT
+========================================================
+
+ROLE: PLANNING ENGINE
+
+You are the reasoning layer of an AI coding agent.
+
+TASK:
+- Understand user request
+- Break into structured steps
+- Decide required tools
+- DO NOT write code
+
+OUTPUT FORMAT:
+
+GOAL:
+-
+
+PLAN:
+1.
+2.
+3.
+
+TOOLS:
+-
+
+NEXT STEP:
+(one step only)
+
+========================================================
+9. CODING MODEL PROMPT
+========================================================
+
+ROLE: EXECUTION ENGINE
+
+You implement steps from reasoning model.
+
+RULES:
+- DO NOT plan
+- DO NOT explain
+- ONLY execute
+
+OUTPUT FORMAT ONLY:
+
+WRITE_FILE: path | content
+
+PATCH: diff
+
+RUN: command
+
+========================================================
+10. OLLAMA SERVICE INTEGRATION (NEW MODULE)
+========================================================
+
+A central module must exist:
+
+OllamaService.ts
+
+FUNCTIONS:
+
+- getModels()
+  → calls /api/tags
+
+- sendMessage(model, messages)
+  → calls /api/chat
+
+- streamMessage(model, messages)
+  → streaming support
+
+- isAlive()
+  → health check
+
+========================================================
+11. MODEL ROUTER (NEW SYSTEM)
+========================================================
+
+State:
+
+selectedReasoningModel
+selectedCodingModel
+
+Flow:
+
+UI Dropdown → updates state → agent uses selected models immediately
+
+No restart required.
+
+========================================================
+12. EXTENSION FEATURES
+========================================================
+
+CORE:
+- VS Code chat sidebar
+- Model selection dropdown UI
+- Ollama integration layer
+- Agent loop engine
+- File + terminal tools
+
+ADVANCED:
+- Streaming responses
+- Step-by-step execution mode
+- Workspace context awareness
+- Tool logging panel
+
+FUTURE:
+- Memory system (RAG)
+- Auto model benchmarking
+- Multi-agent roles (planner, coder, reviewer)
+
+========================================================
+13. SAFETY RULES
+========================================================
+
+- Confirm terminal execution
+- Confirm file overwrite
+- Limit loop to 5 iterations
+- Log all actions
+- Allow manual stop at any time
+
+========================================================
+14. WHY THIS IS BETTER THAN CLINE / CONTINUE
+========================================================
+
+- Fully dynamic model selection (UI-driven)
+- Ollama-native integration layer
+- Strict reasoning/coding separation
+- Real agent loop with feedback
+- Extensible AI operating system design
+- No dependency on fixed model architecture
+
+========================================================
+END OF SPECIFICATION
+========================================================
